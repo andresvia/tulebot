@@ -26,8 +26,7 @@ app.set('trust proxy', true);
 app.use(bodyParser.json());
 
 app.all('*', function(req, res) {
-  // redis_client.publish("zagabot", JSON.stringify(req.body));
-  console.log(JSON.stringify(req.body));
+  redis_client.publish(process.env.BOT_NAME, JSON.stringify(req.body));
   res.send();
 });
 
