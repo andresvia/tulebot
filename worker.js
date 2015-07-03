@@ -22,9 +22,16 @@ redis_client.on('message', function(ch, u) {
   var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
   var form = {
     chat_id: update.message.chat.id,
-    text: process.env.BOT_SAY,
     reply_to_message_id: update.message.message_id
   }
+  var form_text;
+  laws_regex = new RegExp(process.env.LAWS_REGX, 'i');
+  if (update.message.text.match(laws_regex)) {
+    form_text = process.env.BOT_LAWS;
+  } else {
+    form_text = process.env.BOT_SAY;
+  }
+  form.text = form_text;
   var options = {
     url: tg_url,
     method: 'POST',
