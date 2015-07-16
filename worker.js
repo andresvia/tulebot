@@ -31,13 +31,13 @@ redis_queue.on('message', function(ch, u) {
   var update = JSON.parse(u);
   //perform spy here
   mypool.getConnection(function(err, conn){
-    if (err) throw err;
+    if (err) console.log(err);
     var msgmsg = update.message.from.username + ": " + update.message.text
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
     conn.format(insert_sql, inserts, function(err, result){
       if (err) {
         conn.release();
-        throw err;
+        console.log(err);
       } else {
         conn.release();
       }
