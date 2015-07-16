@@ -32,7 +32,9 @@ redis_queue.on('message', function(ch, u) {
   //perform spy here
   mypool.getConnection(function(err, conn){
     if (err) throw err;
-    var msgmsg = update.message.from.username + ": " + update.message.text
+    var username = update.message.from.username;
+    if (username == "undefined") username = update.message.from.first_name;
+    var msgmsg = username + ": " + update.message.text;
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
     conn.query(conn.format(insert_sql, inserts), function(err, result){
       if (err) throw err;
