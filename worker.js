@@ -29,14 +29,10 @@ redis_queue.on('message', function(ch, u) {
   // `msgat` datetime NOT NULL
 
   var update = JSON.parse(u);
-  console.log(update);
   //perform spy here
   mypool.getConnection(function(err, conn){
     if (err) throw err;
-    var username = update.message.from.username;
-    if (username == "undefined") username = update.message.from.first_name;
-    if (username == "undefined") username = update.message.from.last_name;
-    if (username == "undefined") username = update.message.from.id;
+    var username = update.message.from.username || update.message.from.first_name ||  update.message.from.last_name || update.message.from.id;
     var msgmsg = username + ": " + update.message.text;
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
     conn.query(conn.format(insert_sql, inserts), function(err, result){
