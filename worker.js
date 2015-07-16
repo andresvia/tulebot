@@ -16,7 +16,7 @@ redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-var insert_sql = "INSERT INTO msgtable (msgchannel,FROM_UNIXTIME(msgstart),msgmsg,FROM_UNIXTIME(msgat)) VALUES (??,??,??,??) ON DUPLICATE KEY UPDATE msgat=msgat & '\\n' & ??";
+var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,FROM_UNIXTIME(?),?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgat=msgat & '\\n' & ?";
 
 redis_queue.on('message', function(ch, u) {
   // person
@@ -34,15 +34,14 @@ redis_queue.on('message', function(ch, u) {
     if (err) throw err;
     var msgmsg = update.message.from.username + ": " + update.message.text
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
-    //conn.format(insert_sql, inserts, function(err, result){
-    //  if (err) {
-    //    conn.release();
-    //    throw err;
-    //  } else {
-    //    conn.release();
-    //  }
-    //});
-    conn.query('SELECT 1');
+    conn.format(insert_sql, inserts, function(err, result){
+      if (err) {
+        conn.release();
+        throw err;
+      } else {
+        conn.release();
+      }
+    });
   });
   //end of spy
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
