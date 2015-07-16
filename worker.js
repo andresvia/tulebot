@@ -34,14 +34,14 @@ redis_queue.on('message', function(ch, u) {
     if (err) throw err;
     var msgmsg = update.message.from.username + ": " + update.message.text
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
-    # conn.format(insert_sql, inserts, function(err, result){
-    #   if (err) {
-    #     conn.release();
-    #     throw err;
-    #   } else {
-    #     conn.release();
-    #   }
-    # });
+    //conn.format(insert_sql, inserts, function(err, result){
+    //  if (err) {
+    //    conn.release();
+    //    throw err;
+    //  } else {
+    //    conn.release();
+    //  }
+    //});
     conn.query('SELECT 1');
   });
   //end of spy
