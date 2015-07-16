@@ -2,24 +2,38 @@
 var redis = require('redis');
 var URI = require('uri-js');
 var request = require('request');
+var mysql = require('mysql');
 
 // REDIS_URL => redis://h:password@host:port"
 
 var redis_uri = URI.parse(process.env.REDIS_URL);
+var mypool = mysql.createPool({connectionLimit: process.env.CLEARDB_DATABASE_CONNECTION_LIMIT}, process.env.CLEARDB_DATABASE_URL);
 
-var redis_client = redis.createClient(redis_uri.port, redis_uri.host)
-redis_client.auth(redis_uri.userinfo.split(':')[1])
+var redis_queue = redis.createClient(redis_uri.port, redis_uri.host);
+redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 
+var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
+redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-redis_client.on('message', function(ch, u) {
+var sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (??,??,??,??) ON DUPLICATE KEY UPDATE msgat=msgat & ??";
+
+redis_queue.on('message', function(ch, u) {
+  // person
   // {"update_id":38664384,"message":{"message_id":16,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"date":1435302373,"text":"yo!"}}
+  // group
+  // {"update_id":38665301,"message":{"message_id":1003,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":-29158603,"title":"ale & andres"},"date":1436849868,"text":"perro"}}
+  // `msgchannel` BIGINT NOT NULL,
+  // `msgstart` datetime NOT NULL,
+  // `msgmsg` text NOT NULL,
+  // `msgat` datetime NOT NULL
 
   var update = JSON.parse(u);
   if (!update.message) return;
   if (!update.message.text) return;
+  //perform spy here
+  //end of spy
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
   if (!update.message.text.match(regex)) return;
-  console.log(JSON.stringify(update));
   var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
   var form = {
     chat_id: update.message.chat.id,
@@ -42,5 +56,5 @@ redis_client.on('message', function(ch, u) {
 
 });
 
-redis_client.subscribe(process.env.BOT_NAME);
+redis_queue.subscribe(process.env.BOT_NAME);
 
