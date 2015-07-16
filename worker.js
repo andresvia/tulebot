@@ -31,17 +31,18 @@ redis_queue.on('message', function(ch, u) {
   var update = JSON.parse(u);
   //perform spy here
   mypool.getConnection(function(err, conn){
-    if (err) console.log(err);
+    if (err) throw err;
     var msgmsg = update.message.from.username + ": " + update.message.text
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
-    conn.format(insert_sql, inserts, function(err, result){
-      if (err) {
-        conn.release();
-        console.log(err);
-      } else {
-        conn.release();
-      }
-    });
+    # conn.format(insert_sql, inserts, function(err, result){
+    #   if (err) {
+    #     conn.release();
+    #     throw err;
+    #   } else {
+    #     conn.release();
+    #   }
+    # });
+    conn.query('SELECT 1');
   });
   //end of spy
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
