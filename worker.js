@@ -7,7 +7,8 @@ var mysql = require('mysql');
 // REDIS_URL => redis://h:password@host:port"
 
 var redis_uri = URI.parse(process.env.REDIS_URL);
-var mypool = mysql.createPool({connectionLimit: process.env.CLEARDB_DATABASE_CONNECTION_LIMIT}, process.env.CLEARDB_DATABASE_URL);
+var extra_params = "&connectionLimit=" + process.env.CLEARDB_DATABASE_CONNECTION_LIMIT;
+var mypool = mysql.createPool(process.env.CLEARDB_DATABASE_URL + extra_params);
 
 var redis_queue = redis.createClient(redis_uri.port, redis_uri.host);
 redis_queue.auth(redis_uri.userinfo.split(':')[1]);
@@ -15,7 +16,7 @@ redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-var sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (??,??,??,??) ON DUPLICATE KEY UPDATE msgat=msgat & ??";
+var insert_sql = "INSERT INTO msgtable (msgchannel,FROM_UNIXTIME(msgstart),msgmsg,FROM_UNIXTIME(msgat)) VALUES (??,??,??,??) ON DUPLICATE KEY UPDATE msgat=msgat & '\\n' & ??";
 
 redis_queue.on('message', function(ch, u) {
   // person
@@ -28,9 +29,20 @@ redis_queue.on('message', function(ch, u) {
   // `msgat` datetime NOT NULL
 
   var update = JSON.parse(u);
-  if (!update.message) return;
-  if (!update.message.text) return;
   //perform spy here
+  mypool.getConnection(function(err, conn){
+    if (err) throw err;
+    var msgmsg = update.message.from.username + ": " + update.message.text
+    var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
+    conn.format(insert_sql, inserts, function(err, result){
+      if (err) {
+        conn.release();
+        throw err;
+      } else {
+        conn.release();
+      }
+    });
+  });
   //end of spy
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
   if (!update.message.text.match(regex)) return;
