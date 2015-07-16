@@ -34,6 +34,7 @@ redis_queue.on('message', function(ch, u) {
     if (err) throw err;
     var username = update.message.from.username;
     if (username == "undefined") username = update.message.from.first_name;
+    if (username == "undefined") username = update.message.from.last_name;
     var msgmsg = username + ": " + update.message.text;
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
     conn.query(conn.format(insert_sql, inserts), function(err, result){
