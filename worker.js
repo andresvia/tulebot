@@ -36,9 +36,11 @@ redis_queue.on('message', function(ch, u) {
     var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
     conn.format(insert_sql, inserts, function(err, result){
       if (err) {
+        console.log(err);
         conn.release();
         throw err;
       } else {
+	console.log(result.affectedRows);
         conn.release();
       }
     });
