@@ -16,7 +16,7 @@ redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,FROM_UNIXTIME(?),?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgat=msgat & '\\n' & ?";
+var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg=msgmsg & '\\n' & ?";
 
 redis_queue.on('message', function(ch, u) {
   // person
@@ -29,18 +29,30 @@ redis_queue.on('message', function(ch, u) {
   // `msgat` datetime NOT NULL
 
   var update = JSON.parse(u);
-  //perform spy here
-  mypool.getConnection(function(err, conn){
+  var redis_key = "msgmsg" + update.message.chat.id;
+  var insertmsg = function(message_date) {
+    return function(err, conn) {
     if (err) throw err;
-    var username = update.message.from.username || update.message.from.first_name ||  update.message.from.last_name || update.message.from.id;
-    var msgmsg = username + ": " + update.message.text;
-    var inserts = [update.message.chat.id, update.message.date, msgmsg, update.message.date, msgmsg];
-    conn.query(conn.format(insert_sql, inserts), function(err, result){
-      if (err) throw err;
-      conn.release();
-    });
+      var username = update.message.from.username || update.message.from.first_name ||  update.message.from.last_name || update.message.from.id;
+      var msgmsg = username + ": " + update.message.text;
+      var inserts = [update.message.chat.id, message_date, msgmsg, update.message.date, msgmsg];
+      conn.query(conn.format(insert_sql, inserts), function(err, result){
+        if (err) throw err;
+        conn.release();
+      });
+    };
+  };
+  redis_cli.get(redis_key, function(err,reply){
+    if (err) throw err;
+    if (reply) {
+      mypool.getConnection(insertmsg(reply.toString()));
+      redis_cli.expire(redis_key, process.env.MSG_TTL);
+    } else {
+      redis_cli.set(redis_key, update.message.date);
+      mypool.getConnection(insertmsg(update.message.date));
+      redis_cli.expire(redis_key, process.env.MSG_TTL);
+    }
   });
-  //end of spy
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
   if (!update.message.text.match(regex)) return;
   var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
