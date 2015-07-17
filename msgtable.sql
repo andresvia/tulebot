@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS `msgtable`;
 CREATE TABLE `msgtable` (
 	  `msgchannel` BIGINT NOT NULL,
-	  `msgstart` datetime NOT NULL,
+	  `msgstart` BIGINT NOT NULL,
 	  `msgmsg` text NOT NULL,
 	  `msgat` datetime NOT NULL,
 	  `msgupdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
