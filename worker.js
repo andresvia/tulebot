@@ -42,15 +42,15 @@ redis_queue.on('message', function(ch, u) {
       });
     };
   };
-  redis_cli.get(redis_key, function(err,reply){
+  redis_client.get(redis_key, function(err,reply){
     if (err) throw err;
     if (reply) {
       mypool.getConnection(insertmsg(reply.toString()));
-      redis_cli.expire(redis_key, process.env.MSG_TTL);
+      redis_client.expire(redis_key, process.env.MSG_TTL);
     } else {
-      redis_cli.set(redis_key, update.message.date);
+      redis_client.set(redis_key, update.message.date);
       mypool.getConnection(insertmsg(update.message.date));
-      redis_cli.expire(redis_key, process.env.MSG_TTL);
+      redis_client.expire(redis_key, process.env.MSG_TTL);
     }
   });
   var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
