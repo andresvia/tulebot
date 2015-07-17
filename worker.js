@@ -16,7 +16,7 @@ redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg = CONCAT(msgmsg, '\\n', ?)";
+var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg = CONCAT(msgmsg, ' ', ?)";
 
 redis_queue.on('message', function(ch, u) {
   // person
