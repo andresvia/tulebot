@@ -18,18 +18,66 @@ redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
 var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg = CONCAT(msgmsg, '\n', ?)";
 
+var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
+var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
+var laws_regex = new RegExp(process.env.LAWS_REGX, 'i');
+var search_regex = new RegExp(process.env.SEARCH_REGX, 'i');
+var lastword_regex = new RegExp('.*[^\w](.*)', 'i');
+
 redis_queue.on('message', function(ch, u) {
-  // person
+
+  //
+  // how the update looks when it comes from a person
+  //
   // {"update_id":38664384,"message":{"message_id":16,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"date":1435302373,"text":"yo!"}}
-  // group
+  //
+  // how the update looks when it comes from a group
+  //
   // {"update_id":38665301,"message":{"message_id":1003,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":-29158603,"title":"ale & andres"},"date":1436849868,"text":"perro"}}
+  //
+  // these are the fields on the msgtable
+  //
   // `msgchannel` BIGINT NOT NULL,
   // `msgstart` datetime NOT NULL,
   // `msgmsg` text NOT NULL,
   // `msgat` datetime NOT NULL
+  //
 
   var update = JSON.parse(u);
   var redis_key = "msgmsg" + update.message.chat.id;
+
+  if (!update.message.text.match(regex)) {
+    var form = {
+      chat_id: update.message.chat.id,
+      reply_to_message_id: update.message.message_id
+    }
+    var form_text;
+    if (update.message.text.match(laws_regex)) {
+      insert_into_db(update, redis_key);
+      form_text = process.env.BOT_LAWS;
+    } else if (update.message.text.match(search_regex)) {
+      form_text = "Error.";
+    } else {
+      form_text = process.env.BOT_SAY;
+    }
+    form.text = form_text;
+    var options = {
+      url: tg_url,
+      method: 'POST',
+      form: form
+    }
+    request(options);
+  } else {
+    insert_into_db(update, redis_key);
+  }
+
+});
+
+redis_queue.subscribe(process.env.BOT_NAME);
+
+// functions
+
+var insert_into_db = function(update, redis_key) {
   var insertmsg = function(message_date) {
     return function(err, conn) {
     if (err) throw err;
@@ -53,29 +101,5 @@ redis_queue.on('message', function(ch, u) {
       redis_client.expire(redis_key, process.env.MSG_TTL);
     }
   });
-  var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
-  if (!update.message.text.match(regex)) return;
-  var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
-  var form = {
-    chat_id: update.message.chat.id,
-    reply_to_message_id: update.message.message_id
-  }
-  var form_text;
-  laws_regex = new RegExp(process.env.LAWS_REGX, 'i');
-  if (update.message.text.match(laws_regex)) {
-    form_text = process.env.BOT_LAWS;
-  } else {
-    form_text = process.env.BOT_SAY;
-  }
-  form.text = form_text;
-  var options = {
-    url: tg_url,
-    method: 'POST',
-    form: form
-  }
-  request(options);
-
-});
-
-redis_queue.subscribe(process.env.BOT_NAME);
+};
 
