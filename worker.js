@@ -18,7 +18,7 @@ redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
 var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg) VALUES (?,?,?) ON DUPLICATE KEY UPDATE msgmsg=CONCAT(msgmsg,'\n',?)";
 var select_sql = "SELECT msgchannel,msgstart,msgmsg FROM msgtable WHERE msgchannel=? AND msgmsg FTS ORDER BY msgupdated DESC";
-var update_sql = "UPDATE msgtable SET msgtimesread=msgtimesread+1 WHERE msgchannel=? AND msgstart=? LIMIT 1";
+var update_sql = "UPDATE msgtable SET msgtimesread=msgtimesread+1 WHERE msgchannel=? AND msgstart=? LIMIT 1 //  select msgchannel,msgstart,msgmsg,msgupdated from (select msgchannel,msgstart,msgmsg,msgupdated from msgtable where match msgmsg against ('zaga' WITH QUERY EXPANSION) ) as sq where msgstart = '1437654674' order by msgupdated desc; ";
 
 var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
 var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
