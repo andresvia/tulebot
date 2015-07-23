@@ -17,6 +17,7 @@ var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
 var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg = CONCAT(msgmsg, '\n', ?)";
+var select_sql = "SELECT * FROM msgtable ORDER BY msgat DESC";
 
 var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
 var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
@@ -59,7 +60,7 @@ redis_queue.on('message', function(ch, u) {
       var search_text = match[match.length-1].split(/\s+/);
       var last = search_text.pop();
       var number = parseInt(last);
-      if (!number) {
+      if (!number) { //also true for '0'
         search_text.push(last);
         number = 1;
       }
@@ -67,6 +68,7 @@ redis_queue.on('message', function(ch, u) {
       search_text = search_text.join(' ');
       if (search_text != "") {
         form_text = search_text + ' ' + number;
+        //mypool.getConnection();
       } else {
         form_text = process.env.BOT_SAY + "?";
       }
