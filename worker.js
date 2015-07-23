@@ -7,8 +7,7 @@ var mysql = require('mysql');
 // REDIS_URL => redis://h:password@host:port"
 
 var redis_uri = URI.parse(process.env.REDIS_URL);
-var extra_params = "&connectionLimit=" + process.env.CLEARDB_DATABASE_CONNECTION_LIMIT;
-var mypool = mysql.createPool(process.env.CLEARDB_DATABASE_URL + extra_params);
+var mypool = mysql.createPool(process.env.DATABASE_URL);
 
 var redis_queue = redis.createClient(redis_uri.port, redis_uri.host);
 redis_queue.auth(redis_uri.userinfo.split(':')[1]);
