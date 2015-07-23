@@ -20,7 +20,7 @@ Node.js app that uses [Express](http://expressjs.com/) to receive [WebHooks](htt
 
 All listed environment variables are _required_, missing one of them will crash the application.
 
-- `BOT_KEY`          - This bot will accept _only_ `POST` requests on `server:port/BOT\_KEY` any attempt to send request using other HTTP methods or paths will result in a `40X` error.
+- `BOT_KEY`          - This bot will accept _only_ `POST` requests on `server:port/BOT_KEY` any attempt to send request using other HTTP methods or paths will result in a `40X` error.
 - `BOT_LAWS`         - Text that will be used when the "laws" command is triggered.
 - `BOT_NAME`         - Will be used as the name of the Redis _pubsub_ queue, many bots may share the same Redis instance.
 - `BOT_SAY`          - Word or phrase that the bot uses to ACK user messages, sometimes the bot may suffix this string with '?' or '!' characters.
