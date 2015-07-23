@@ -77,10 +77,9 @@ redis_queue.on('message', function(ch, u) {
 	  conn.query(conn.format(select_sql, fields), function(err, rows){
             if (rows.length > number) {
               var row = rows[number];
-	      console.log(row);
-              form_text = process.env.BOT_SAY + "!!";
-	    } else {
-              form_text = process.env.BOT_SAY + "??";
+              //row.msgchannel;
+              //row.msgstart;
+	      post_to_tg(update.message.chat.id, update.message.message_id, row.msgmsg);
 	    }
 	  });
 	});
@@ -107,6 +106,19 @@ redis_queue.on('message', function(ch, u) {
 redis_queue.subscribe(process.env.BOT_NAME);
 
 // functions
+
+var post_to_tg = function(id, replyto, text){
+  var options = {
+    url: tg_url,
+    method: 'POST',
+    form: {
+      chat_id: id,
+      reply_to_message_id: replyto,
+      text: text
+    }
+  }
+  request(options);
+};
 
 var insert_into_db = function(update, redis_key) {
   var insertmsg = function(message_date) {
