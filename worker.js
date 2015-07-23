@@ -22,7 +22,7 @@ var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/s
 var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
 var laws_regex = new RegExp(process.env.LAWS_REGX, 'i');
 var search_regex = new RegExp(process.env.SEARCH_REGX, 'i');
-var lastword_regex = new RegExp('.*[^\w](.*)', 'i');
+var lastword_regex = new RegExp('(.*)[^\w](.*)$', 'i');
 
 redis_queue.on('message', function(ch, u) {
 
@@ -58,6 +58,7 @@ redis_queue.on('message', function(ch, u) {
     } else if (update.message.text.match(search_regex)) {
       var match = update.message.text.match(search_regex);
       var search_text = match[match.length-1]
+      console.log(search_text.match(lastword_regex));
       if (search_text != "") {
         form_text = search_text;
       } else {
@@ -65,7 +66,7 @@ redis_queue.on('message', function(ch, u) {
       }
     } else {
       insert_into_db(update, redis_key);
-      form_text = process.env.BOT_SAY;
+      form_text = process.env.BOT_SAY + "!";
     }
     form.text = form_text;
     var options = {
