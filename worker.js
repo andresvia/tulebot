@@ -22,7 +22,7 @@ var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/s
 var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
 var laws_regex = new RegExp(process.env.LAWS_REGX, 'i');
 var search_regex = new RegExp(process.env.SEARCH_REGX, 'i');
-var lastword_regex = new RegExp('(.*)[^\w](.*)$', 'i');
+var lastword_regex = new RegExp('(.*)[\s](.*)$');
 
 redis_queue.on('message', function(ch, u) {
 
