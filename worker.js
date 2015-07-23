@@ -75,10 +75,11 @@ redis_queue.on('message', function(ch, u) {
 	  var fields = [search_text, update.message.chat.id];
 	  conn.query(conn.format(select_sql, fields), function(err, rows){
             if (err) throw err;
-            if (rows.length > number) {
+	    var results = rows.length;
+            if (results > number) {
               var row = rows[number];
               var msgstart = new Date(1000 * parseInt(row.msgstart));
-	      post_to_tg(update.message.chat.id, update.message.message_id, msgstart + '\n' + row.msgmsg);
+	      post_to_tg(update.message.chat.id, update.message.message_id, '<<' + search_text + '>>... ' + results + '\n' + msgstart + '\n' + row.msgmsg);
 	      conn.release();
               mypool.getConnection(function(err, conn){
                 if (err) throw err;
