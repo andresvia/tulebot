@@ -58,6 +58,7 @@ redis_queue.on('message', function(ch, u) {
     } else if (update.message.text.match(search_regex)) {
       form_text = "Error.";
     } else {
+      insert_into_db(update, redis_key);
       form_text = process.env.BOT_SAY;
     }
     form.text = form_text;
