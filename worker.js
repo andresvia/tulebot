@@ -86,7 +86,7 @@ redis_queue.on('message', function(ch, u) {
                   if (err) throw err;
 		});
 		conn.release();
-              };
+              });
 	    }
 	  });
 	});
