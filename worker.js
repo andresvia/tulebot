@@ -46,7 +46,7 @@ redis_queue.on('message', function(ch, u) {
   var update = JSON.parse(u);
   var redis_key = "msgmsg" + update.message.chat.id;
 
-  if (!update.message.text.match(regex)) {
+  if (update.message.text.match(regex)) {
     var form = {
       chat_id: update.message.chat.id,
       reply_to_message_id: update.message.message_id
