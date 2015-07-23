@@ -73,7 +73,7 @@ redis_queue.on('message', function(ch, u) {
         form_text = search_text;
         mypool.getConnection(function(err, conn){
           if (err) throw err;
-	  var fields = [update.message.chat.id,FTS];
+	  var fields = [update.message.chat.id, 'FTS'];
 	  // conn.query(conn.format(select_sql, fields), function(err, rows){
           //   if (rows.length > number) {
           //     row = rows[number];
