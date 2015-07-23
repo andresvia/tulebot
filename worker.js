@@ -70,16 +70,23 @@ redis_queue.on('message', function(ch, u) {
       number = number - 1;
       search_text = search_text.join(' ');
       if (search_text != "") {
-        form_text = search_text;
         mypool.getConnection(function(err, conn){
           if (err) throw err;
 	  var fields = [search_text, update.message.chat.id];
 	  conn.query(conn.format(select_sql, fields), function(err, rows){
+            if (err) throw err;
             if (rows.length > number) {
               var row = rows[number];
-              //row.msgchannel;
-              //row.msgstart;
-	      post_to_tg(update.message.chat.id, update.message.message_id, row.msgmsg);
+              var msgstart = new Date(1000 * parseInt(row.msgstart));
+	      post_to_tg(update.message.chat.id, update.message.message_id, msgstart + '\n' + row.msgmsg);
+	      conn.release();
+              mypool.getConnection(function(err, conn){
+                if (err) throw err;
+		conn.query(conn.format(update_sql, [row.msgchannel, row.msgstart]), function(err, result){
+                  if (err) throw err;
+		});
+		conn.release();
+              };
 	    }
 	  });
 	});
@@ -90,13 +97,15 @@ redis_queue.on('message', function(ch, u) {
       insert_into_db(update, redis_key);
       form_text = process.env.BOT_SAY + "!";
     }
-    form.text = form_text;
-    var options = {
-      url: tg_url,
-      method: 'POST',
-      form: form
+    if (form_text) {
+      form.text = form_text;
+      var options = {
+        url: tg_url,
+        method: 'POST',
+        form: form
+      };
+      request(options);
     }
-    request(options);
   } else {
     insert_into_db(update, redis_key);
   }
