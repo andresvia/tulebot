@@ -16,8 +16,9 @@ redis_queue.auth(redis_uri.userinfo.split(':')[1]);
 var redis_client = redis.createClient(redis_uri.port, redis_uri.host);
 redis_client.auth(redis_uri.userinfo.split(':')[1]);
 
-var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg,msgat) VALUES (?,?,?,FROM_UNIXTIME(?)) ON DUPLICATE KEY UPDATE msgmsg = CONCAT(msgmsg, '\n', ?)";
-var select_sql = "SELECT * FROM msgtable ORDER BY msgat DESC";
+var insert_sql = "INSERT INTO msgtable (msgchannel,msgstart,msgmsg) VALUES (?,?,?) ON DUPLICATE KEY UPDATE msgmsg=CONCAT(msgmsg,'\n',?)";
+var select_sql = "SELECT msgchannel,msgstart,msgmsg FROM msgtable WHERE msgchannel=? AND msgmsg FTS ORDER BY msgupdated DESC";
+var update_sql = "UPDATE msgtable SET msgtimesread=msgtimesread+1 WHERE msgchannel=? AND msgstart=? LIMIT 1";
 
 var tg_url = 'https://api.telegram.org/bot' + process.env.TELEGRAM_BOT_KEY + '/sendMessage';
 var regex = new RegExp(process.env.TRIGGER_TEXT, 'i');
@@ -40,7 +41,8 @@ redis_queue.on('message', function(ch, u) {
   // `msgchannel` BIGINT NOT NULL,
   // `msgstart` datetime NOT NULL,
   // `msgmsg` text NOT NULL,
-  // `msgat` datetime NOT NULL
+  // `msgtimesread` BIGINT NOT NULL,
+  // `msgupdated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   //
 
   var update = JSON.parse(u);
@@ -60,15 +62,28 @@ redis_queue.on('message', function(ch, u) {
       var search_text = match[match.length-1].split(/\s+/);
       var last = search_text.pop();
       var number = parseInt(last);
-      if (!number) { //also true for '0'
+      if (!number) { // BUG: also true for '0'
         search_text.push(last);
         number = 1;
       }
       number = Math.abs(number);
+      number = number - 1;
       search_text = search_text.join(' ');
       if (search_text != "") {
-        form_text = search_text + ' ' + number;
-        //mypool.getConnection();
+        form_text = search_text;
+        mypool.getConnection(function(err, conn){
+          if (err) throw err;
+	  var fields = [update.message.chat.id,FTS];
+	  // conn.query(conn.format(select_sql, fields), function(err, rows){
+          //   if (rows.length > number) {
+          //     row = rows[number];
+	  //     console.log(row);
+          //     form_text = process.env.BOT_SAY + "!!";
+	  //   } else {
+          //     form_text = process.env.BOT_SAY + "?";
+	  //   }
+	  // });
+	});
       } else {
         form_text = process.env.BOT_SAY + "?";
       }
@@ -96,10 +111,10 @@ redis_queue.subscribe(process.env.BOT_NAME);
 var insert_into_db = function(update, redis_key) {
   var insertmsg = function(message_date) {
     return function(err, conn) {
-    if (err) throw err;
+      if (err) throw err;
       var username = update.message.from.username || update.message.from.first_name ||  update.message.from.last_name || update.message.from.id;
       var msgmsg = username + ": " + update.message.text;
-      var inserts = [update.message.chat.id, message_date, msgmsg, update.message.date, msgmsg];
+      var inserts = [update.message.chat.id, message_date, msgmsg, msgmsg];
       conn.query(conn.format(insert_sql, inserts), function(err, result){
         if (err) throw err;
         conn.release();
