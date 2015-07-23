@@ -29,11 +29,11 @@ redis_queue.on('message', function(ch, u) {
   //
   // how the update looks when it comes from a person
   //
-  // {"update_id":38664384,"message":{"message_id":16,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"date":1435302373,"text":"yo!"}}
+  // {"update_id":0,"message":{"message_id":0,"from":{"id":0,"first_name":"F","last_name":"L","username":"u"},"chat":{"id":0,"first_name":"F","last_name":"L","username":"u"},"date":0,"text":"t"}}
   //
   // how the update looks when it comes from a group
   //
-  // {"update_id":38665301,"message":{"message_id":1003,"from":{"id":346904,"first_name":"Andres","last_name":"Villarroel Acosta","username":"andresvia"},"chat":{"id":-29158603,"title":"ale & andres"},"date":1436849868,"text":"perro"}}
+  // {"update_id":0,"message":{"message_id":0,"from":{"id":0,"first_name":"F","last_name":"L","username":"u"},"chat":{"id":0,"title":"T"},"date":0,"text":"t"}}
   //
   // these are the fields on the msgtable
   //
@@ -98,13 +98,7 @@ redis_queue.on('message', function(ch, u) {
       form_text = process.env.BOT_SAY + "!";
     }
     if (form_text) {
-      form.text = form_text;
-      var options = {
-        url: tg_url,
-        method: 'POST',
-        form: form
-      };
-      request(options);
+      post_to_tg(update.message.chat.id, update.message.message_id, form_text);
     }
   } else {
     insert_into_db(update, redis_key);
