@@ -25,7 +25,7 @@ app.set('port', (process.env.PORT || 5000));
 app.set('trust proxy', true);
 app.use(bodyParser.json());
 
-app.all('/' + process.env.BOT_KEY, function(req, res) {
+app.post('/' + process.env.BOT_KEY, function(req, res) {
   redis_client.publish(process.env.BOT_NAME, JSON.stringify(req.body));
   res.send();
 });
