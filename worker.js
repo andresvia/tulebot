@@ -3,9 +3,6 @@ var redis = require('redis');
 var URI = require('uri-js');
 var request = require('request');
 var mysql = require('mysql');
-var DBMigrate = require('db-migrate');
-// var dbmigrate = DBMigrate.getInstance(true);
-// dbmigrate.run();
 
 // REDIS_URL => redis://h:password@host:port"
 

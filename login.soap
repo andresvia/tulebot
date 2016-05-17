@@ -1,0 +1,27 @@
+  POST /soap/ HTTP/1.1
+  Host: tuleap.udistrital.edu.co
+  Connection: Keep-Alive
+  User-Agent: PHP-SOAP/5.5.31
+  Content-Type: text/xml; charset=utf-8
+  SOAPAction: "http://tuleap.udistrital.edu.co#login"
+  Content-Length: 566
+
+  <?xml version="1.0" encoding="UTF-8"?>
+  <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="http://tuleap.udistrital.edu.co" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><SOAP-ENV:Body><ns1:login><loginname xsi:type="xsd:string">foo</loginname><passwd xsi:type="xsd:string">bar</passwd></ns1:login></SOAP-ENV:Body></SOAP-ENV:Envelope>
+
+  HTTP/1.1 200 OK
+  Content-Type: text/xml; charset=utf-8
+  Content-Length: 641
+  Connection: close
+  Content-Security-Policy: frame-ancestors 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' ; reflected-xss block;
+  Date: Tue, 17 May 2016 04:45:38 GMT
+  Server: Apache/2.2.15 (CentOS)
+  Set-Cookie: PHPSESSID=xxxxxxxxxxxxxx; path=/
+  Set-Cookie: TULEAP_session_hash=yyyyyyyyyy; path=/; domain=.tuleap.udistrital.edu.co; httponly
+  X-Frame-Options: SAMEORIGIN
+  X-Powered-By: PHP/5.3.3
+  X-XSS-Protection: 1; mode=block
+
+get challenge from
+
+curl -k -v 'https://tuleap.udistrital.edu.co/snippet/submit.php' -H "Cookie: TULEAP_session_hash=yyyyyyyyyyy"
