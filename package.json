@@ -12,7 +12,9 @@
     "uri-js": "2.1.0",
     "body-parser": "1.13.1",
     "request": "2.58.0",
-    "mysql": "2.7.0"
+    "mysql": "2.7.0",
+    "db-migrate": "0.10.0-beta.11",
+    "db-migrate-mysql": "1.1.6"
   },
   "engines": {
     "node": "0.12.2"

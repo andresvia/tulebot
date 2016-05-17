@@ -3,11 +3,19 @@ var redis = require('redis');
 var URI = require('uri-js');
 var request = require('request');
 var mysql = require('mysql');
+var DBMigrate = require('db-migrate');
+// var dbmigrate = DBMigrate.getInstance(true);
+// dbmigrate.run();
 
 // REDIS_URL => redis://h:password@host:port"
 
 var redis_uri = URI.parse(process.env.REDIS_URL);
-var mypool = mysql.createPool(process.env.DATABASE_URL);
+var database_url = "mysql://" +
+  process.env.DB_USER         + ":" +
+  process.env.DB_PASSWORD     + "@" +
+  process.env.DB_HOST         + "/" +
+  process.env.DB_DATABASE     + "?reconnect=true";
+var mypool = mysql.createPool(database_url);
 
 var redis_queue = redis.createClient(redis_uri.port, redis_uri.host);
 redis_queue.auth(redis_uri.userinfo.split(':')[1]);
